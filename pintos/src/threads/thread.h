@@ -88,7 +88,10 @@ struct thread
     char name[16];                      /* Name (for debugging purposes). */
     uint8_t *stack;                     /* Saved stack pointer. */
     int priority;                       /* Priority. */
-
+    #ifdef USERPROG
+    struct file * files[128];
+    int file_no;
+    #endif
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
 
