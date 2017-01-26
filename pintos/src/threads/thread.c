@@ -132,6 +132,10 @@ thread_tick (void)
   /* Enforce preemption. */
   if (++thread_ticks >= TIME_SLICE)
     intr_yield_on_return ();
+
+  // check sleepers
+ /* TODO: things maybe?
+ */
 }
 
 /* Prints thread statistics. */
@@ -191,7 +195,11 @@ thread_create (const char *name, int priority,
   /* Stack frame for switch_threads(). */
   sf = alloc_frame (t, sizeof *sf);
   sf->eip = switch_entry;
-
+  #ifdef USERPROG
+  t->file_no = 0;
+  t->files_open = 0;
+  t->wake_at = 0;
+  #endif
   /* Add to run queue. */
   thread_unblock (t);
 

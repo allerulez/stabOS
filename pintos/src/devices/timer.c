@@ -1,5 +1,6 @@
 #include "devices/timer.h"
 #include <debug.h>
+#include "list.h"
 #include <inttypes.h>
 #include <round.h>
 #include <stdio.h>
@@ -96,11 +97,15 @@ timer_elapsed (int64_t then)
 void
 timer_sleep (int64_t ticks) 
 {
+  struct thread * cur_thread = current_thread();
   int64_t start = timer_ticks ();
-
+  cur_thread->wake_at = start + ticks;
+  cur_thread->thread_block();
   ASSERT (intr_get_level () == INTR_ON);
-  while (timer_elapsed (start) < ticks) 
+
+/*  while (timer_elapsed (start) < ticks) 
     thread_yield ();
+*/
 }
 
 /* Suspends execution for approximately MS milliseconds. */

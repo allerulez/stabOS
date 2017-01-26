@@ -41,7 +41,7 @@ int main(void)
     halt();
   }
   if (!create("test2", 1024)){
-    printf("Could not create test1\n");
+    printf("Could not create test2\n");
     halt();
   }
 	

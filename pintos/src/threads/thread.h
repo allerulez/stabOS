@@ -91,6 +91,8 @@ struct thread
     #ifdef USERPROG
     struct file * files[128];
     int file_no;
+    int files_open;
+    int64_t wake_at;
     #endif
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
