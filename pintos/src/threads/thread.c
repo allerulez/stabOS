@@ -13,6 +13,7 @@
 #include "threads/vaddr.h"
 #ifdef USERPROG
 #include "userprog/process.h"
+#include "devices/timer.h"
 #endif
 
 /* Random value for struct thread's `magic' member.
@@ -93,6 +94,7 @@ thread_init (void)
   init_thread (initial_thread, "main", PRI_DEFAULT);
   initial_thread->status = THREAD_RUNNING;
   initial_thread->tid = allocate_tid ();
+  list_init(&sleepers);
 }
 
 /* Starts preemptive thread scheduling by enabling interrupts.
@@ -133,6 +135,20 @@ thread_tick (void)
   if (++thread_ticks >= TIME_SLICE)
     intr_yield_on_return ();
 
+  struct list_elem *e;
+
+  for (e = list_begin (&sleepers); e != list_end (&sleepers);
+       e = list_next (e))
+    {
+      // how can th not be a thread? 
+      struct thread *th;
+      th = list_entry(e, struct thread, elem);
+      if(th->wake_at <= timer_ticks()) {
+        thread_unblock(th);
+
+        
+      }
+    }
   // check sleepers
  /* TODO: things maybe?
  */

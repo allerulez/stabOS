@@ -5,6 +5,8 @@
 #include <list.h>
 #include <stdint.h>
 
+
+struct list sleepers;
 /* States in a thread's life cycle. */
 enum thread_status
   {
@@ -92,9 +94,9 @@ struct thread
     struct file * files[128];
     int file_no;
     int files_open;
-    int64_t wake_at;
     #endif
     /* Shared between thread.c and synch.c. */
+    int64_t wake_at;
     struct list_elem elem;              /* List element. */
 
 #ifdef USERPROG
