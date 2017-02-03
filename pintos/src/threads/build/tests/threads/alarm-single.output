@@ -1,5 +1,5 @@
-Writing command line to /tmp/Jsjq3rQZpP.dsk...
-qemu -hda /tmp/Jsjq3rQZpP.dsk -m 4 -net none -nographic -monitor null
+Writing command line to /tmp/wZWzdrXEZd.dsk...
+qemu -hda /tmp/wZWzdrXEZd.dsk -m 4 -net none -nographic -monitor null
 Kernel command line: -q run alarm-single
 Pintos booting with 4,088 kB RAM...
 371 pages available in kernel pool.
@@ -13,12 +13,12 @@ Executing 'alarm-single':
 (alarm-single) thread 1 sleeps 20 ticks each time, and so on.
 (alarm-single) If successful, product of iteration count and
 (alarm-single) sleep duration will appear in nondescending order.
-Kernel PANIC at ../../threads/thread.c:231 in thread_block(): assertion `intr_get_level () == INTR_OFF' failed.
-Call stack: 0xc0106eab 0x34206461Interrupt 0x0e (#PF Page-Fault Exception) at eip=0xc01050e7
- cr2=65726874 error=00000000
- eax=0000000b ebx=65726874 ecx=00000571 edx=000003d4
- esi=000000e7 edi=c010bc67 esp=c010d6cb ebp=c002fe28
- cs=0008 ds=0010 es=0010 ss=6461
+Kernel PANIC at ../../lib/kernel/list.c:171 in list_insert(): assertion `is_interior (before) || is_tail (before)' failed.
+Call stack: 0xc0106ecbInterrupt 0x0e (#PF Page-Fault Exception) at eip=0xc0105107
+ cr2=00000001 error=00000000
+ eax=0000000b ebx=00000001 ecx=00000566 edx=000003d4
+ esi=000000ab edi=c010c389 esp=c010d6eb ebp=c011cec0
+ cs=0008 ds=0010 es=0010 ss=6ecb
 Kernel PANIC recursion at ../../threads/interrupt.c:373 in intr_handler().
 Timer: 23 ticks
 Thread: 0 idle ticks, 23 kernel ticks, 0 user ticks

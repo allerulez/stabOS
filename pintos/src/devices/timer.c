@@ -45,6 +45,8 @@ timer_init (void)
   outb (0x40, count >> 8);
 
   intr_register_ext (0x20, timer_interrupt, "8254 Timer");
+  list_init(&sleepers);
+  
 }
 
 /* Calibrates loops_per_tick, used to implement brief delays. */
@@ -82,6 +84,9 @@ timer_ticks (void)
   int64_t t = ticks;
   intr_set_level (old_level);
   barrier ();
+
+  
+
   return t;
 }
 
@@ -97,19 +102,16 @@ timer_elapsed (int64_t then)
 void
 timer_sleep (int64_t ticks) 
 {
+  
   struct thread * cur_thread = thread_current();
   int64_t start = timer_ticks ();
   ASSERT (intr_get_level () == INTR_ON);
+
   cur_thread->wake_at = start + ticks;
-  //enum intr_level bad_level;
-  list_push_back(&sleepers, &cur_thread->elem);  
-  enum intr_level return_level;
-  return_level = intr_get_level();
-//  bad_level = intr_disable();
-  intr_set_level(INTR_OFF);
-  thread_block();
-  intr_set_level(return_level);
-  
+     printf("here \n");
+  sema_down(&cur_thread->s);
+     printf("not here \n");
+  list_push_back(&sleepers, &(cur_thread->elem));  
 
 /*
   while (timer_elapsed (start) < ticks) 
@@ -151,6 +153,21 @@ timer_interrupt (struct intr_frame *args UNUSED)
 {
   ticks++;
   thread_tick ();
+  
+  struct list_elem *e;
+
+  for (e = list_begin (&sleepers); e != list_end (&sleepers);
+       e = list_next (e))
+    {
+      // how can th not be a thread? 
+      struct thread *th;
+      th = list_entry(e, struct thread, elem);
+      if(th->wake_at <= timer_ticks()) {
+        sema_up(&th->s);
+	list_remove(e);
+      }
+      }
+
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer

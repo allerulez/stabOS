@@ -1,6 +1,5 @@
 FAIL
-Kernel panic in run: PANIC at ../../threads/thread.c:231 in thread_block(): assertion `intr_get_level () == INTR_OFF' failed.
-Call stack: 0xc0106eab 0x34206461
+Kernel panic in run: PANIC at ../../lib/kernel/list.c:171 in list_insert(): assertion `is_interior (before) || is_tail (before)' failed.
+Call stack: 0xc0106ecb
 Translation of call stack:
-0xc0106eab: debug_panic (.../../lib/kernel/debug.c:34)
-0x34206461: (unknown)
+0xc0106ecb: debug_panic (.../../lib/kernel/debug.c:34)

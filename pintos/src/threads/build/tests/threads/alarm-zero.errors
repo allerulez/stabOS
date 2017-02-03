@@ -1,0 +1,2 @@
+qemu: terminating on signal 2
+Use of uninitialized value in numeric le (<=) at /home/gusso811/pintos/stabOS/pintos/src/utils//pintos line 767.

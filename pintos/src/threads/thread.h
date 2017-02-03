@@ -4,9 +4,10 @@
 #include <debug.h>
 #include <list.h>
 #include <stdint.h>
+#include "synch.h"
 
 
-struct list sleepers;
+
 /* States in a thread's life cycle. */
 enum thread_status
   {
@@ -98,7 +99,8 @@ struct thread
     /* Shared between thread.c and synch.c. */
     int64_t wake_at;
     struct list_elem elem;              /* List element. */
-
+    //struct list_elem elem2;
+    struct semaphore s;
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
