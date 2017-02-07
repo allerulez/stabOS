@@ -8,6 +8,7 @@
 #define TIMER_FREQ 100
 
 static struct list sleepers;
+struct lock l;
 
 void timer_init (void);
 void timer_calibrate (void);

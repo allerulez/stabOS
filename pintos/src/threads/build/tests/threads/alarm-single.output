@@ -1,5 +1,5 @@
-Writing command line to /tmp/wZWzdrXEZd.dsk...
-qemu -hda /tmp/wZWzdrXEZd.dsk -m 4 -net none -nographic -monitor null
+Writing command line to /tmp/X40501tMgu.dsk...
+qemu -hda /tmp/X40501tMgu.dsk -m 4 -net none -nographic -monitor null
 Kernel command line: -q run alarm-single
 Pintos booting with 4,088 kB RAM...
 371 pages available in kernel pool.
@@ -13,15 +13,15 @@ Executing 'alarm-single':
 (alarm-single) thread 1 sleeps 20 ticks each time, and so on.
 (alarm-single) If successful, product of iteration count and
 (alarm-single) sleep duration will appear in nondescending order.
-Kernel PANIC at ../../lib/kernel/list.c:171 in list_insert(): assertion `is_interior (before) || is_tail (before)' failed.
-Call stack: 0xc0106ecbInterrupt 0x0e (#PF Page-Fault Exception) at eip=0xc0105107
- cr2=00000001 error=00000000
- eax=0000000b ebx=00000001 ecx=00000566 edx=000003d4
- esi=000000ab edi=c010c389 esp=c010d6eb ebp=c011cec0
- cs=0008 ds=0010 es=0010 ss=6ecb
-Kernel PANIC recursion at ../../threads/interrupt.c:373 in intr_handler().
-Timer: 23 ticks
-Thread: 0 idle ticks, 23 kernel ticks, 0 user ticks
-Console: 1065 characters output
+(alarm-single) thread 0: duration=10, iteration=1, product=10
+(alarm-single) thread 1: duration=20, iteration=1, product=20
+(alarm-single) thread 2: duration=30, iteration=1, product=30
+(alarm-single) thread 3: duration=40, iteration=1, product=40
+(alarm-single) thread 4: duration=50, iteration=1, product=50
+(alarm-single) end
+Execution of 'alarm-single' complete.
+Timer: 274 ticks
+Thread: 250 idle ticks, 24 kernel ticks, 0 user ticks
+Console: 987 characters output
 Keyboard: 0 keys pressed
 Powering off...

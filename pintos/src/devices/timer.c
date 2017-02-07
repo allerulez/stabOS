@@ -46,6 +46,8 @@ timer_init (void)
 
   intr_register_ext (0x20, timer_interrupt, "8254 Timer");
   list_init(&sleepers);
+  lock_init(&l);
+  
   
 }
 
@@ -105,14 +107,13 @@ timer_sleep (int64_t ticks)
   
   struct thread * cur_thread = thread_current();
   int64_t start = timer_ticks ();
-  ASSERT (intr_get_level () == INTR_ON);
-
   cur_thread->wake_at = start + ticks;
-     printf("here \n");
+  lock_acquire(&l);
+  list_push_back(&sleepers, &(cur_thread->elem2));  
+  lock_release(&l);
+  sema_init(&cur_thread->s, 0);
   sema_down(&cur_thread->s);
-     printf("not here \n");
-  list_push_back(&sleepers, &(cur_thread->elem));  
-
+  //Old sleep/bad sleep
 /*
   while (timer_elapsed (start) < ticks) 
     thread_yield ();
@@ -159,14 +160,13 @@ timer_interrupt (struct intr_frame *args UNUSED)
   for (e = list_begin (&sleepers); e != list_end (&sleepers);
        e = list_next (e))
     {
-      // how can th not be a thread? 
       struct thread *th;
-      th = list_entry(e, struct thread, elem);
+      th = list_entry(e, struct thread, elem2);
       if(th->wake_at <= timer_ticks()) {
-        sema_up(&th->s);
-	list_remove(e);
+        list_remove(e);
+	sema_up(&th->s);
       }
-      }
+    }
 
 }
 

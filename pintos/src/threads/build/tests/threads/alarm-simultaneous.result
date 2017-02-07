@@ -1,4 +1,1 @@
-FAIL
-Kernel panic in run: PANIC at ../../lib/kernel/list.c:171 in list_insert(): assertion `is_interior (before) || is_tail (before)' failed.
-Call stack:
-Translation of call stack:
+PASS

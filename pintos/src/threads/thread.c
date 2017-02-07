@@ -94,7 +94,6 @@ thread_init (void)
   init_thread (initial_thread, "main", PRI_DEFAULT);
   initial_thread->status = THREAD_RUNNING;
   initial_thread->tid = allocate_tid ();
-  sema_init(&initial_thread->s, 0);
 
 }
 

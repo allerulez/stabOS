@@ -96,11 +96,11 @@ struct thread
     int file_no;
     int files_open;
     #endif
-    /* Shared between thread.c and synch.c. */
     int64_t wake_at;
-    struct list_elem elem;              /* List element. */
-    //struct list_elem elem2;
     struct semaphore s;
+    /* Shared between thread.c and synch.c. */
+    struct list_elem elem;              /* List element. */
+    struct list_elem elem2;
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
