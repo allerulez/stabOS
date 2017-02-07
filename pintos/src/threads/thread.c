@@ -164,6 +164,7 @@ tid_t
 thread_create (const char *name, int priority,
                thread_func *function, void *aux) 
 {
+  struct thread *cur_thread = thread_current();
   struct thread *t;
   struct kernel_thread_frame *kf;
   struct switch_entry_frame *ef;
@@ -198,10 +199,15 @@ thread_create (const char *name, int priority,
   t->file_no = 0;
   t->files_open = 0;
   t->wake_at = 0;
+  list_init(&t->children);
+  t->parent.parent= cur_thread->tid;
+  t->parent.child = tid;
+  t->parent.state = 2;
+  list_push_back(cur_thread->children, t->parent.elem)
   #endif
   /* Add to run queue. */
   thread_unblock (t);
-
+  function(aux);
   return tid;
 }
 

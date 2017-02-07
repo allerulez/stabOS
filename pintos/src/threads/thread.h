@@ -95,9 +95,12 @@ struct thread
     struct file * files[128];
     int file_no;
     int files_open;
+    struct list children;
+    struct pair parent;
     #endif
     int64_t wake_at;
     struct semaphore s;
+    struct semaphore wait;
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
     struct list_elem elem2;
@@ -109,6 +112,13 @@ struct thread
     /* Owned by thread.c. */
     unsigned magic;                     /* Detects stack overflow. */
   };
+
+  struct pair{
+      tid_t parent;
+      tid_t child;
+      int state;
+      struct list_elem elem;
+    };
 
 /* If false (default), use round-robin scheduler.
    If true, use multi-level feedback queue scheduler.

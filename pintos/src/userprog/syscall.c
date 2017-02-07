@@ -45,6 +45,12 @@ syscall_handler (struct intr_frame *f)
 		case SYS_EXIT:
 			exit((int) *(sp + 1));
 			break;
+		case SYS_EXEC:
+			exec(*((char**) (sp + 1)));
+			break;
+		case SYS_WAIT:
+			wait(*((char**) (sp + 1)));
+			break;
     }
 }
 
@@ -139,4 +145,17 @@ void exit(int status) {
 		//free(cur_thread->files[i]);
 	}
 	thread_exit();
+}
+
+pid_t exec(const char* cmd_line) {
+	struct cur_thread = thread_current();
+	sema_down(&cur_thread->wait);
+	int child_id = process_execute(cmd_line);
+	//make sure to return id properly
+	return -1;
+}
+
+int wait(pid_t pid) {
+
+	return status;
 }

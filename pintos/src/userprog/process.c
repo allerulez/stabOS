@@ -42,6 +42,7 @@ process_execute (const char *file_name)
   tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
   if (tid == TID_ERROR)
     palloc_free_page (fn_copy); 
+
   return tid;
 }
 
@@ -66,6 +67,9 @@ start_process (void *file_name_)
   if (!success) 
     thread_exit ();
 
+  else{
+      
+  }
   /* Start the user process by simulating a return from an
      interrupt, implemented by intr_exit (in
      threads/intr-stubs.S).  Because intr_exit takes all of its
@@ -83,7 +87,7 @@ start_process (void *file_name_)
    been successfully called for the given TID, returns -1
    immediately, without waiting.
 
-   This function will be implemented in problem 2-2.  For now, it
+   This function will be implemented in problem 3.  For now, it
    does nothing. */
 int
 process_wait (tid_t child_tid UNUSED) 
