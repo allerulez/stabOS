@@ -200,14 +200,14 @@ thread_create (const char *name, int priority,
   t->files_open = 0;
   t->wake_at = 0;
   list_init(&t->children);
-  t->parent.parent= cur_thread->tid;
-  t->parent.child = tid;
-  t->parent.state = 2;
-  list_push_back(cur_thread->children, t->parent.elem)
+  t->parent_pair.parent= cur_thread->tid;
+  t->parent_pair.child = tid;
+  t->parent_pair.state = 2;
+  list_push_back(cur_thread->children, t->parent_pair.pair_elem);
   #endif
   /* Add to run queue. */
   thread_unblock (t);
-  function(aux);
+  //function(aux);
   return tid;
 }
 
@@ -290,6 +290,7 @@ thread_exit (void)
   ASSERT (!intr_context ());
 
 #ifdef USERPROG
+  file_close_all(thread_current()->files);
   process_exit ();
 #endif
 

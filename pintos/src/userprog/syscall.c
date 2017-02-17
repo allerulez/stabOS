@@ -141,6 +141,17 @@ void exit(int status) {
 	status--;
 	struct thread * cur_thread = thread_current();
 	int i;
+	for (e = list_begin (&cur_thread->children); e != list_end (&cur_thread->children);
+           e = list_next (e))
+        {
+          struct pair *child_pair = list_entry (e, struct pair, pair_elem);
+          child_pair->state--;
+          if(child_pair->state == 0) {
+          	//clear all resources here
+          } else {
+          	//clear only current threads resources
+          }
+        }
 	for (i = 0; i<cur_thread->file_no; i++) {
 		//free(cur_thread->files[i]);
 	}
@@ -148,11 +159,14 @@ void exit(int status) {
 }
 
 pid_t exec(const char* cmd_line) {
-	struct cur_thread = thread_current();
-	sema_down(&cur_thread->wait);
+	struct * cur_thread = thread_current();
+
+	//sema_down(&cur_thread->wait);
 	int child_id = process_execute(cmd_line);
+	
 	//make sure to return id properly
-	return -1;
+	if (child_id == TID_ERROR) return -1;
+	return child_id;
 }
 
 int wait(pid_t pid) {

@@ -53,6 +53,16 @@ file_close (struct file *file)
     }
 }
 
+/* Closes all files in a thread */
+void
+file_close_all (struct file *files) 
+{
+  int i;
+  for (i = 0; i<128; i++) {
+    file_close(files[i]);
+  }
+}
+
 /* Returns the inode encapsulated by FILE. */
 struct inode *
 file_get_inode (struct file *file) 

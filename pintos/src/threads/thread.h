@@ -96,7 +96,8 @@ struct thread
     int file_no;
     int files_open;
     struct list children;
-    struct pair parent;
+    struct pair parent_pair;
+    struct lock the_lock;
     #endif
     int64_t wake_at;
     struct semaphore s;
@@ -117,7 +118,7 @@ struct thread
       tid_t parent;
       tid_t child;
       int state;
-      struct list_elem elem;
+      struct list_elem pair_elem;
     };
 
 /* If false (default), use round-robin scheduler.
