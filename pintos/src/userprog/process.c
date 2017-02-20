@@ -28,21 +28,24 @@ static bool load (const char *cmdline, void (**eip) (void), void **esp);
 tid_t
 process_execute (const char *file_name) 
 {
-  char *fn_copy;
+  struct thread * cur_thread = thread_current();
+  struct thread_data * t_data;
+  t_data->thread = cur_thread;
+  //char *fn_copy;
   tid_t tid;
 
   /* Make a copy of FILE_NAME.
      Otherwise there's a race between the caller and load(). */
-  fn_copy = palloc_get_page (0);
-  if (fn_copy == NULL)
+  t_data->fn_copy = palloc_get_page (0);
+  if (t_data->fn_copy == NULL)
     return TID_ERROR;
-  strlcpy (fn_copy, file_name, PGSIZE);
+  strlcpy (t_data->fn_copy, file_name, PGSIZE);
 
   /* Create a new thread to execute FILE_NAME. */
-  tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
+  tid = thread_create (file_name, PRI_DEFAULT, start_process, t_data);
   
   if (tid == TID_ERROR)
-    palloc_free_page (fn_copy); 
+    palloc_free_page (t_data->fn_copy); 
   
   return tid;
 }
@@ -50,9 +53,10 @@ process_execute (const char *file_name)
 /* A thread function that loads a user process and starts it
    running. */
 static void
-start_process (void *file_name_)
+start_process (struct thread_data * t_data)//void *file_name_)
 {
-  char *file_name = file_name_;
+
+  char *file_name = t_data->fn_copy; //file_name_;
   struct intr_frame if_;
   bool success;
 
@@ -65,7 +69,11 @@ start_process (void *file_name_)
 
   /* If load failed, quit. */
   palloc_free_page (file_name);
+  sema_up(t_data->thread);
   if (!success) 
+    if(thread_current()->parent_pair != NULL) {
+      free(thread_current()->parent_pair);
+    }
     thread_exit ();
 
   else{

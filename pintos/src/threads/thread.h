@@ -27,6 +27,8 @@ typedef int tid_t;
 #define PRI_DEFAULT 31                  /* Default priority. */
 #define PRI_MAX 63                      /* Highest priority. */
 
+#define MAX_FILES 128
+
 /* A kernel thread or user process.
 
    Each thread structure is stored in its own 4 kB page.  The
@@ -92,11 +94,11 @@ struct thread
     uint8_t *stack;                     /* Saved stack pointer. */
     int priority;                       /* Priority. */
     #ifdef USERPROG
-    struct file * files[128];
+    struct file * files[MAX_FILES];
     int file_no;
     int files_open;
     struct list children;
-    struct pair parent_pair;
+    struct * pair parent_pair;
     struct lock the_lock;
     #endif
     int64_t wake_at;
@@ -119,6 +121,8 @@ struct thread
       tid_t child;
       int state;
       struct list_elem pair_elem;
+      int exit_status_parent;
+      int exit_status_child;
     };
 
 /* If false (default), use round-robin scheduler.

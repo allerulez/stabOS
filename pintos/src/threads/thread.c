@@ -127,6 +127,7 @@ thread_tick (void)
 #ifdef USERPROG
   else if (t->pagedir != NULL)
     user_ticks++;
+  
 #endif
   else
     kernel_ticks++;
@@ -169,6 +170,7 @@ thread_create (const char *name, int priority,
   struct kernel_thread_frame *kf;
   struct switch_entry_frame *ef;
   struct switch_threads_frame *sf;
+  struct thread_data * t_data = aux;
   tid_t tid;
 
   ASSERT (function != NULL);
@@ -186,7 +188,7 @@ thread_create (const char *name, int priority,
   kf = alloc_frame (t, sizeof *kf);
   kf->eip = NULL;
   kf->function = function;
-  kf->aux = aux;
+  kf->aux = t_data->fn_copy;
 
   /* Stack frame for switch_entry(). */
   ef = alloc_frame (t, sizeof *ef);
@@ -200,10 +202,13 @@ thread_create (const char *name, int priority,
   t->files_open = 0;
   t->wake_at = 0;
   list_init(&t->children);
-  t->parent_pair.parent= cur_thread->tid;
-  t->parent_pair.child = tid;
-  t->parent_pair.state = 2;
-  list_push_back(cur_thread->children, t->parent_pair.pair_elem);
+  malloc(t->parent_pair, sizeof(&t->parent_pair))
+  t->parent_pair->parent= cur_thread->tid;
+  t->parent_pair->child = tid;
+  t->parent_pair->state = 2;
+  list_push_back(cur_thread->children, t->parent_pair->pair_elem);
+  sema_down(&t_data->thread);
+  function(t_data);
   #endif
   /* Add to run queue. */
   thread_unblock (t);
@@ -291,6 +296,7 @@ thread_exit (void)
 
 #ifdef USERPROG
   file_close_all(thread_current()->files);
+
   process_exit ();
 #endif
 
