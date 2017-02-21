@@ -1,1 +1,4 @@
-PASS
+FAIL
+Kernel panic in run: PANIC at ../../threads/synch.c:113 in sema_up(): assertion `sema != NULL' failed.
+Call stack:
+Translation of call stack:
