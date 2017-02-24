@@ -45,9 +45,11 @@ syscall_handler (struct intr_frame *f)
 		case SYS_EXIT:
 			exit((int) *(sp + 1));
 			break;
-		case SYS_EXEC:
-			wait(*((char**) (sp + 1)));
+		case SYS_WAIT:
+			wait(**((tid_t**) (sp + 1)));
 			break;
+		case SYS_EXEC:
+			exec(*(char**) (sp + 1));
     }
 }
 
@@ -140,18 +142,19 @@ void exit(int status) {
   if(cur_thread->parent_pair->parent == NULL){
     free(cur_thread->parent_pair);
   }
+  struct list_elem * e;
   for (e = list_begin (&cur_thread->children); e != list_end (&cur_thread->children);
   e = list_next (e)){
     struct pair * child_pair = list_entry (e, struct pair, pair_elem);
     child_pair->state--;
     if(child_pair->state == 0) free(child_pair);
   }
-  lock_release(cur_thread->&l);
+  lock_release(&cur_thread->l);
   thread_exit();
 }
 
-pid_t exec(const char* cmd_line) {
-  struct * cur_thread = thread_current();
+tid_t exec(const char* cmd_line) {
+  struct thread * cur_thread = thread_current();
 
   //sema_down(&cur_thread->wait);
   process_execute(cmd_line);
@@ -163,18 +166,19 @@ pid_t exec(const char* cmd_line) {
   }
 }
 
-int wait(pid_t pid) {
-  struct * cur_thread = thread_current();
+int wait(tid_t pid) {
+  struct thread * cur_thread = thread_current();
   int status = -1;
   lock_init(&cur_thread->l);
   lock_acquire(&cur_thread->l);
+  struct list_elem * e;
   for (e = list_begin (&cur_thread->children); e != list_end (&cur_thread->children);
   e = list_next (e))
   {
     struct pair * child_pair = list_entry (e, struct pair, pair_elem);
     if(child_pair->child->tid == pid) {
       status = child_pair->exit_status_child;
-      if(child_pair->exit_status_child != NULL) {
+      if(status != NULL) {
         return status;
       }
       break;
@@ -183,6 +187,6 @@ int wait(pid_t pid) {
   sema_init(&cur_thread->wait,0);
   cur_thread->parent_wait = true;
   sema_down(&cur_thread->wait);
-  lock_release(cur_thread->&l);
+  lock_release(&cur_thread->l);
   return status;
 }

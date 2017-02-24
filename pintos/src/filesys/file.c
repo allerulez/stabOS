@@ -59,7 +59,7 @@ file_close_all (struct file *files)
 {
   int i;
   for (i = 0; i<128; i++) {
-    file_close(files[i]);
+    file_close(&files[i]);
   }
 }
 

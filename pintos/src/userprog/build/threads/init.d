@@ -11,5 +11,6 @@ threads/init.o: ../../threads/init.c ../../threads/init.h \
  ../../threads/vaddr.h ../../threads/thread.h ../../lib/kernel/list.h \
  ../../threads/synch.h ../../userprog/process.h \
  ../../userprog/exception.h ../../userprog/gdt.h ../../userprog/syscall.h \
- ../../userprog/tss.h ../../devices/disk.h ../../lib/inttypes.h \
- ../../filesys/filesys.h ../../filesys/off_t.h ../../filesys/fsutil.h
+ ../../userprog/process.h ../../userprog/tss.h ../../devices/disk.h \
+ ../../lib/inttypes.h ../../filesys/filesys.h ../../filesys/off_t.h \
+ ../../filesys/fsutil.h

@@ -30,34 +30,37 @@ tid_t
 process_execute (const char *cmd_line)
 {
   struct thread * cur_thread = thread_current();
-  struct thread_data * t_data;
-  t_data->thread = cur_thread;
+  struct thread_data t_data; // = t_data_init();
+  t_data.thread = cur_thread;
   //char *fn_copy;
   tid_t tid;
-  int argc = 0;
-  char * argv[32];
+  t_data.argc = 0;
+
+  //int argc = 0;
+  //char * argv[32];
   char *token, *save_ptr;
 
   for (token = strtok_r (cmd_line, " ", &save_ptr); token != NULL;
     token = strtok_r (NULL, " ", &save_ptr)) {
-      argv[argc] = token;
-      argc++;
+    //  argv[argc] = token;
+    //  argc++;
+      t_data.argv[t_data.argc] = token;
+      t_data.argc++;
     }
-  t_data->argv = *argv;
-  t_data->argc = argc;
+  
 
   /* Make a copy of FILE_NAME.
      Otherwise there's a race between the caller and load(). */
-  t_data->fn_copy = palloc_get_page (0);
-  if (t_data->fn_copy == NULL)
+  t_data.fn_copy = palloc_get_page (0);
+  if (t_data.fn_copy == NULL)
     return TID_ERROR;
-  strlcpy (t_data->fn_copy, argv[0], PGSIZE);
+  strlcpy (t_data.fn_copy, t_data.argv[0], PGSIZE);
 
   /* Create a new thread to execute FILE_NAME. */
-  tid = thread_create (argv[0], PRI_DEFAULT, start_process, t_data);
+  tid = thread_create (t_data.argv[0], PRI_DEFAULT, start_process, &t_data);
 
   if (tid == TID_ERROR)
-    palloc_free_page (t_data->fn_copy);
+    palloc_free_page (t_data.fn_copy);
 
   return tid;
 }
@@ -82,7 +85,7 @@ start_process (struct thread_data * t_data)  /*void *file_name_)*/
 
   /* If load failed, quit. */
   palloc_free_page (file_name);
-  sema_up(t_data->thread);
+  sema_up(&t_data->thread->wait);
   if (!success) {
     if(thread_current()->parent_pair != NULL) {
       free(thread_current()->parent_pair);
@@ -510,20 +513,20 @@ setup_stack (void **esp, struct thread_data *t_data)
         palloc_free_page (kpage);
         return success;
     }
-    char *argv[32];
-    argv = *t_data->argv;
-    int argc = t_data->argc;
+    //char *argv[32];
+    //argv = *t_data->argv;
+    //int argc = t_data->argc;
     bool pointer = false;
     int i, j;
     for (i = 0; i < 2; i++) {
       for(j = 0; j < t_data->argc; j++){
           if (pointer){
-            memcpy((void*)*esp, (void*)&argv[j], sizeof(&argv[j]));
+            memcpy((void*)*esp, (void*)&t_data->argv[j], sizeof(&t_data->argv[j]));
             esp -= 4;
           }
           else{
-            memcpy((void*)*esp, (void*)argv[j], sizeof(argv[j]));
-            esp -= sizeof(argv[j]);
+            memcpy((void*)*esp, (void*)t_data->argv[j], sizeof(t_data->argv[j]));
+            esp -= sizeof(*t_data->argv[j]);
           }
 
       }
@@ -534,10 +537,10 @@ setup_stack (void **esp, struct thread_data *t_data)
       }
     }
 
-    memcpy(*esp, &argv, sizeof(&argv));
-    esp -= 4;
-    memcpy(*esp, &argc, sizeof(argc));
-    esp -= 8;
+    memcpy(*esp, &t_data->argv, sizeof(&t_data->argv));
+    esp -= sizeof(&t_data->argv);
+    memcpy(*esp, &t_data->argc, sizeof(&t_data->argc));
+    esp -= sizeof(&t_data->argc);
   return success;
 }
 

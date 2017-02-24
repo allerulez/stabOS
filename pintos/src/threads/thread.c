@@ -97,6 +97,7 @@ thread_init (void)
 
 }
 
+
 /* Starts preemptive thread scheduling by enabling interrupts.
    Also creates the idle thread. */
 void
@@ -105,7 +106,8 @@ thread_start (void)
   /* Create the idle thread. */
   struct semaphore idle_started;
   sema_init (&idle_started, 0);
-  thread_create ("idle", PRI_MIN, idle, &idle_started);
+  struct thread_data t_data;
+  thread_create ("idle", PRI_MIN, idle, &t_data);
 
   /* Start preemptive thread scheduling. */
   intr_enable ();
@@ -170,7 +172,7 @@ thread_create (const char *name, int priority,
   struct kernel_thread_frame *kf;
   struct switch_entry_frame *ef;
   struct switch_threads_frame *sf;
-  struct thread_data * t_data = aux;
+  //struct thread_data * t_data = aux;
   tid_t tid;
 
   ASSERT (function != NULL);
@@ -188,7 +190,7 @@ thread_create (const char *name, int priority,
   kf = alloc_frame (t, sizeof *kf);
   kf->eip = NULL;
   kf->function = function;
-  kf->aux = t_data->fn_copy;
+  kf->aux = aux->fn_copy;
 
   /* Stack frame for switch_entry(). */
   ef = alloc_frame (t, sizeof *ef);
@@ -202,7 +204,7 @@ thread_create (const char *name, int priority,
   t->files_open = 0;
   t->wake_at = 0;
   t->parent_wait = false;
-  t->parent_pair->parent= cur_thread;
+  t->parent_pair->parent = thread_current(); //cur_thread;
   t->parent_pair->child = t;
   t->parent_pair->state = 2;
   list_init(&t->children);
@@ -210,8 +212,8 @@ thread_create (const char *name, int priority,
   lock_acquire(&cur_thread->l);
   list_push_back(&cur_thread->children, &t->parent_pair->pair_elem);
   lock_release(&cur_thread->l);
-  sema_down(&t_data->thread->wait);
-  function(t_data);
+  sema_down(&aux->thread->wait);
+  function(aux);
   #endif
   /* Add to run queue. */
   thread_unblock (t);
@@ -303,7 +305,7 @@ thread_exit (void)
   if (cur_thread->parent_pair->parent->parent_wait){
     sema_up(&cur_thread->parent_pair->parent->wait);
   }
-  printf("%s: exit(%d)\n", cur_thread->tid, cur_thread->parent_pair->exit_status_parent);
+  printf("%i: exit(%i)\n", cur_thread->tid, cur_thread->parent_pair->exit_status_parent);
   process_exit ();
 #endif
 
