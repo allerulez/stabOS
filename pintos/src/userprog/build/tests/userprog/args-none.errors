@@ -1,1 +1,2 @@
-/bin/sh: 1: pintos: not found
+Use of uninitialized value in numeric le (<=) at /home/aleev379/TDDB68/lab2/pintos/src/utils//pintos line 767.
+qemu: terminating on signal 2 from pid 18186

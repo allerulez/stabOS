@@ -101,14 +101,14 @@ struct thread
     struct pair *parent_pair;
     struct lock l;
     bool parent_wait;
-    #endif
     int64_t wake_at;
+    #endif
     struct semaphore s;
-    struct semaphore wait;
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
-    struct list_elem elem2;
 #ifdef USERPROG
+    struct semaphore wait;
+    struct list_elem elem2;
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
 #endif
@@ -145,7 +145,7 @@ void thread_tick (void);
 void thread_print_stats (void);
 
 typedef void thread_func (void *aux);
-tid_t thread_create (const char *name, int priority, thread_func *function, struct thread_data *aux);
+tid_t thread_create (const char *name, int priority, thread_func *function, struct thread_data *aux, struct semaphore *s);
 
 void thread_block (void);
 void thread_unblock (struct thread *);

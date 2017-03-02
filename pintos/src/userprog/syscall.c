@@ -21,6 +21,7 @@ syscall_handler (struct intr_frame *f)
 {
 	//f->esp holds the adress of the first syscall argument
   int *sp = f->esp;
+  printf("Syscall is about to be handled");
   //int *syscall_no = (int *) sp;
   switch((int) *sp) {
   	case SYS_HALT:
@@ -28,28 +29,37 @@ syscall_handler (struct intr_frame *f)
   		break;
   	case SYS_CREATE:
   		f->eax = create(*((char**) (sp + 1)), (int) *(sp + 2));
+  		sp += 3;
   		break;
 		case SYS_OPEN:
 			f->eax = open(*((char**) (sp + 1)));
+			sp += 2;
 			break;
 		case SYS_CLOSE:
 			close((int) *(sp + 1));
+			sp += 2;
 			break;
 		case SYS_READ:
 			f->eax = read((int) *(sp + 1), *((char**) (sp + 2)), (unsigned) *(sp + 3));
+			sp += 4;
 			break;
 		case SYS_WRITE:
 			f->eax = write((int) *(sp + 1), (void *) *(sp + 2), (unsigned) *(sp + 3));
+			sp += 4;
 			//printf("wrote %i bytes to file with FD: %i.", bytes_written, (int) *(sp+1));
 			break;
 		case SYS_EXIT:
 			exit((int) *(sp + 1));
+			sp += 2;
 			break;
 		case SYS_WAIT:
 			wait(**((tid_t**) (sp + 1)));
+			sp += 2;
 			break;
 		case SYS_EXEC:
 			exec(*(char**) (sp + 1));
+			sp += 2;
+			break;
     }
 }
 
@@ -155,13 +165,14 @@ void exit(int status) {
 
 tid_t exec(const char* cmd_line) {
   struct thread * cur_thread = thread_current();
-
+  printf("greetings ");
   //sema_down(&cur_thread->wait);
   process_execute(cmd_line);
   int child_id = list_entry(list_end(&cur_thread->children), struct pair, pair_elem)->child->tid;
   //make sure to return id properly
-  if (child_id == TID_ERROR) return -1;
-  {
+  if (child_id == TID_ERROR){
+  	return -1;
+	}else {
     return child_id;
   }
 }

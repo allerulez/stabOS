@@ -29,6 +29,7 @@ static bool load (const char *cmdline, void (**eip) (void), void **esp,  struct 
 tid_t
 process_execute (const char *cmd_line)
 {
+  printf("process_execute start");
   struct thread * cur_thread = thread_current();
   struct thread_data t_data; // = t_data_init();
   t_data.thread = cur_thread;
@@ -57,7 +58,7 @@ process_execute (const char *cmd_line)
   strlcpy (t_data.fn_copy, t_data.argv[0], PGSIZE);
 
   /* Create a new thread to execute FILE_NAME. */
-  tid = thread_create (t_data.argv[0], PRI_DEFAULT, start_process, &t_data);
+  tid = thread_create (t_data.argv[0], PRI_DEFAULT, start_process, &t_data, NULL);
 
   if (tid == TID_ERROR)
     palloc_free_page (t_data.fn_copy);
@@ -70,7 +71,8 @@ process_execute (const char *cmd_line)
 static void
 start_process (struct thread_data * t_data)  /*void *file_name_)*/
 {
-
+  printf("We are now in start_process");
+  struct thread * cur_thread = thread_current();
   char *file_name = t_data->fn_copy; //file_name_;
   struct intr_frame if_;
   bool success;
@@ -85,7 +87,7 @@ start_process (struct thread_data * t_data)  /*void *file_name_)*/
 
   /* If load failed, quit. */
   palloc_free_page (file_name);
-  sema_up(&t_data->thread->wait);
+  sema_up(&cur_thread->wait);
   if (!success) {
     if(thread_current()->parent_pair != NULL) {
       free(thread_current()->parent_pair);
@@ -249,7 +251,7 @@ load (const char *file_name, void (**eip) (void), void **esp, struct thread_data
   if (t->pagedir == NULL)
     goto done;
   process_activate ();
-
+  printf("We are about to call SetupStack from load");
   /* Set up stack. */
   if (!setup_stack (esp, t_data)){
     goto done;
@@ -513,6 +515,7 @@ setup_stack (void **esp, struct thread_data *t_data)
         palloc_free_page (kpage);
         return success;
     }
+    printf("We are about to set up the stack");
     //char *argv[32];
     //argv = *t_data->argv;
     //int argc = t_data->argc;
@@ -522,7 +525,7 @@ setup_stack (void **esp, struct thread_data *t_data)
       for(j = 0; j < t_data->argc; j++){
           if (pointer){
             memcpy((void*)*esp, (void*)&t_data->argv[j], sizeof(&t_data->argv[j]));
-            esp -= 4;
+            esp --;
           }
           else{
             memcpy((void*)*esp, (void*)t_data->argv[j], sizeof(t_data->argv[j]));

@@ -1,2 +1,5 @@
 FAIL
-Run produced no output at all
+Kernel panic in run: PANIC at ../../userprog/exception.c:100 in kill(): Kernel bug - unexpected interrupt in kernel
+Call stack: 0xc01070bb
+Translation of call stack:
+0xc01070bb: debug_panic (.../../lib/kernel/debug.c:34)

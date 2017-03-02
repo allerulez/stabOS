@@ -97,6 +97,13 @@ thread_init (void)
 
 }
 
+void
+pair_init (struct thread * t) {
+  struct pair * par_pair;
+  par_pair = (struct pair*) malloc(sizeof(struct pair));
+  t->parent_pair = par_pair;
+}
+
 
 /* Starts preemptive thread scheduling by enabling interrupts.
    Also creates the idle thread. */
@@ -107,7 +114,10 @@ thread_start (void)
   struct semaphore idle_started;
   sema_init (&idle_started, 0);
   struct thread_data t_data;
-  thread_create ("idle", PRI_MIN, idle, &t_data);
+  t_data.thread = NULL;
+  char * fn_copy = "idle_thread";
+  t_data.fn_copy = &fn_copy;
+  thread_create ("idle", PRI_MIN, idle, &t_data, &idle_started);
 
   /* Start preemptive thread scheduling. */
   intr_enable ();
@@ -165,8 +175,9 @@ thread_print_stats (void)
    Priority scheduling is the goal of Problem 1-3. */
 tid_t
 thread_create (const char *name, int priority,
-               thread_func *function, struct thread_data *aux)
+               thread_func *function, struct thread_data *aux, struct semaphore *s)
 {
+
   struct thread *cur_thread = thread_current();
   struct thread *t;
   struct kernel_thread_frame *kf;
@@ -199,24 +210,39 @@ thread_create (const char *name, int priority,
   /* Stack frame for switch_threads(). */
   sf = alloc_frame (t, sizeof *sf);
   sf->eip = switch_entry;
+
   #ifdef USERPROG
   t->file_no = 0;
   t->files_open = 0;
   t->wake_at = 0;
   t->parent_wait = false;
-  t->parent_pair->parent = thread_current(); //cur_thread;
-  t->parent_pair->child = t;
-  t->parent_pair->state = 2;
   list_init(&t->children);
-  lock_init(&cur_thread->l);
-  lock_acquire(&cur_thread->l);
-  list_push_back(&cur_thread->children, &t->parent_pair->pair_elem);
-  lock_release(&cur_thread->l);
-  sema_down(&aux->thread->wait);
-  function(aux);
+  pair_init(t);
+  if(!aux->thread == NULL){
+      
+      t->parent_pair->parent = cur_thread;
+      t->parent_pair->child = t;
+      t->parent_pair->state = 2;
+      lock_init(&cur_thread->l);
+      lock_acquire(&cur_thread->l);
+
+      list_push_back(&cur_thread->children, &t->parent_pair->pair_elem);
+      lock_release(&cur_thread->l);
+      sema_down(&cur_thread->wait);
+      function(aux);
+      printf("I am here\n");
+
+    }
+    else{
+      t->parent_pair = NULL;
+      function(s);
+
+    }
+
+
   #endif
   /* Add to run queue. */
-  thread_unblock (t);
+  //thread_unblock (t);
   //function(aux);
   return tid;
 }
@@ -273,7 +299,6 @@ struct thread *
 thread_current (void)
 {
   struct thread *t = running_thread ();
-
   /* Make sure T is really a thread.
      If either of these assertions fire, then your thread may
      have overflowed its stack.  Each thread has less than 4 kB
@@ -392,7 +417,8 @@ thread_get_recent_cpu (void)
 static void
 idle (void *idle_started_ UNUSED)
 {
-  struct semaphore *idle_started = idle_started_;
+
+  struct semaphore *idle_started = idle_started_;  
   idle_thread = thread_current ();
   sema_up (idle_started);
 
@@ -415,7 +441,7 @@ idle (void *idle_started_ UNUSED)
          See [IA32-v2a] "HLT", [IA32-v2b] "STI", and [IA32-v3a]
          7.11.1 "HLT Instruction". */
       asm volatile ("sti; hlt" : : : "memory");
-    }
+    }    
 }
 
 /* Function used as the basis for a kernel thread. */
