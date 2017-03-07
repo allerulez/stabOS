@@ -168,6 +168,7 @@ tid_t exec(const char* cmd_line) {
   printf("greetings ");
   //sema_down(&cur_thread->wait);
   process_execute(cmd_line);
+
   int child_id = list_entry(list_end(&cur_thread->children), struct pair, pair_elem)->child->tid;
   //make sure to return id properly
   if (child_id == TID_ERROR){

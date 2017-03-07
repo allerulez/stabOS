@@ -105,6 +105,14 @@ pair_init (struct thread * t) {
 }
 
 
+struct thread_data *
+t_data_init () {
+  struct thread_data * t_data;
+  t_data = malloc(sizeof(struct thread_data));
+  return t_data;
+}
+
+
 /* Starts preemptive thread scheduling by enabling interrupts.
    Also creates the idle thread. */
 void
@@ -113,11 +121,7 @@ thread_start (void)
   /* Create the idle thread. */
   struct semaphore idle_started;
   sema_init (&idle_started, 0);
-  struct thread_data t_data;
-  t_data.thread = NULL;
-  char * fn_copy = "idle_thread";
-  t_data.fn_copy = &fn_copy;
-  thread_create ("idle", PRI_MIN, idle, &t_data, &idle_started);
+  thread_create ("idle", PRI_MIN, idle, &idle_started);
 
   /* Start preemptive thread scheduling. */
   intr_enable ();
@@ -175,10 +179,10 @@ thread_print_stats (void)
    Priority scheduling is the goal of Problem 1-3. */
 tid_t
 thread_create (const char *name, int priority,
-               thread_func *function, struct thread_data *aux, struct semaphore *s)
+               thread_func *function, void *aux)
 {
 
-  struct thread *cur_thread = thread_current();
+  //struct thread *cur_thread = thread_current();
   struct thread *t;
   struct kernel_thread_frame *kf;
   struct switch_entry_frame *ef;
@@ -201,7 +205,8 @@ thread_create (const char *name, int priority,
   kf = alloc_frame (t, sizeof *kf);
   kf->eip = NULL;
   kf->function = function;
-  kf->aux = aux->fn_copy;
+  kf->aux = aux;
+  //typeof(aux*) t_data = (typeof(aux*)) aux;
 
   /* Stack frame for switch_entry(). */
   ef = alloc_frame (t, sizeof *ef);
@@ -216,34 +221,17 @@ thread_create (const char *name, int priority,
   t->files_open = 0;
   t->wake_at = 0;
   t->parent_wait = false;
-  list_init(&t->children);
-  pair_init(t);
-  if(!aux->thread == NULL){
-      
-      t->parent_pair->parent = cur_thread;
-      t->parent_pair->child = t;
-      t->parent_pair->state = 2;
-      lock_init(&cur_thread->l);
-      lock_acquire(&cur_thread->l);
-
-      list_push_back(&cur_thread->children, &t->parent_pair->pair_elem);
-      lock_release(&cur_thread->l);
-      sema_down(&cur_thread->wait);
-      function(aux);
-      printf("I am here\n");
-
-    }
-    else{
-      t->parent_pair = NULL;
-      function(s);
-
-    }
-
-
+  //function(aux);
+  //printf("I am here\n");
+  //t->parent_pair = NULL;
+  if (strcmp(name, "idle") != 0) {
+    struct thread_data * t_data = (struct thread_data *) aux;
+    t_data->thread = t;
+    pair_init(t);
+  }
   #endif
   /* Add to run queue. */
-  //thread_unblock (t);
-  //function(aux);
+  thread_unblock(t);
   return tid;
 }
 
@@ -326,7 +314,7 @@ thread_exit (void)
 
 #ifdef USERPROG
   struct thread *cur_thread = thread_current ();
-  file_close_all(thread_current()->files);
+  file_close_all(*thread_current()->files);
   if (cur_thread->parent_pair->parent->parent_wait){
     sema_up(&cur_thread->parent_pair->parent->wait);
   }
@@ -491,6 +479,7 @@ init_thread (struct thread *t, const char *name, int priority)
   t->stack = (uint8_t *) t + PGSIZE;
   t->priority = priority;
   t->magic = THREAD_MAGIC;
+  list_init(&t->children);
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and

@@ -19,7 +19,7 @@
 #include "threads/vaddr.h"
 
 //static thread_func start_process NO_RETURN;
-static void start_process ( struct thread_data *t_data);
+static void start_process ( void * file_name_);
 static bool load (const char *cmdline, void (**eip) (void), void **esp,  struct thread_data *t_data);
 
 /* Starts a new thread running a user program loaded from
@@ -29,13 +29,13 @@ static bool load (const char *cmdline, void (**eip) (void), void **esp,  struct 
 tid_t
 process_execute (const char *cmd_line)
 {
-  printf("process_execute start");
   struct thread * cur_thread = thread_current();
-  struct thread_data t_data; // = t_data_init();
-  t_data.thread = cur_thread;
+  struct thread_data * t_data;
+  t_data = t_data_init();
+  //t_data.thread = cur_thread;
   //char *fn_copy;
   tid_t tid;
-  t_data.argc = 0;
+  t_data->argc = 0;
 
   //int argc = 0;
   //char * argv[32];
@@ -45,23 +45,37 @@ process_execute (const char *cmd_line)
     token = strtok_r (NULL, " ", &save_ptr)) {
     //  argv[argc] = token;
     //  argc++;
-      t_data.argv[t_data.argc] = token;
-      t_data.argc++;
+      t_data->argv[t_data->argc] = token;
+      t_data->argc++;
     }
   
 
   /* Make a copy of FILE_NAME.
      Otherwise there's a race between the caller and load(). */
-  t_data.fn_copy = palloc_get_page (0);
-  if (t_data.fn_copy == NULL)
+  t_data->fn_copy = palloc_get_page (0);
+  if (t_data->fn_copy == NULL)
     return TID_ERROR;
-  strlcpy (t_data.fn_copy, t_data.argv[0], PGSIZE);
+  strlcpy (t_data->fn_copy, t_data->argv[0], PGSIZE);
 
   /* Create a new thread to execute FILE_NAME. */
-  tid = thread_create (t_data.argv[0], PRI_DEFAULT, start_process, &t_data, NULL);
+  tid = thread_create (t_data->argv[0], PRI_DEFAULT, start_process, t_data);
+  if (tid == TID_ERROR) {
+    palloc_free_page (t_data->fn_copy);
+  }else{
+    struct thread * t = t_data->thread;
+    t->parent_pair->parent = cur_thread;
+    t->parent_pair->child = t;
+    t->parent_pair->state = 2;
 
-  if (tid == TID_ERROR)
-    palloc_free_page (t_data.fn_copy);
+    lock_init(&cur_thread->l);
+    lock_acquire(&cur_thread->l);
+    list_push_back(&cur_thread->children, &t->parent_pair->pair_elem);
+    lock_release(&cur_thread->l);
+    //thread_unblock(t_data->thread);
+    sema_init(&t_data->s, 1);
+    sema_down(&t_data->s);
+
+ }
 
   return tid;
 }
@@ -69,11 +83,13 @@ process_execute (const char *cmd_line)
 /* A thread function that loads a user process and starts it
    running. */
 static void
-start_process (struct thread_data * t_data)  /*void *file_name_)*/
+start_process (void * file_name_)  /*void *file_name_)*/
 {
-  printf("We are now in start_process");
+  struct thread_data * t_data = (struct thread_data *) file_name_;
   struct thread * cur_thread = thread_current();
-  char *file_name = t_data->fn_copy; //file_name_;
+  char *fileNm = t_data->fn_copy; //file_name_;
+  //printf("\n %s \n", fileNm);
+  //printf("\n %s \n", cur_thread->name);
   struct intr_frame if_;
   bool success;
 
@@ -82,12 +98,13 @@ start_process (struct thread_data * t_data)  /*void *file_name_)*/
   if_.gs = if_.fs = if_.es = if_.ds = if_.ss = SEL_UDSEG;
   if_.cs = SEL_UCSEG;
   if_.eflags = FLAG_IF | FLAG_MBS;
-  success = load (file_name, &if_.eip, &if_.esp, t_data);
+  success = load (fileNm, &if_.eip, &if_.esp, t_data);
 
-
+  sema_up(&t_data->s);
+  free(t_data);
   /* If load failed, quit. */
-  palloc_free_page (file_name);
-  sema_up(&cur_thread->wait);
+  palloc_free_page (fileNm);
+
   if (!success) {
     if(thread_current()->parent_pair != NULL) {
       free(thread_current()->parent_pair);
@@ -251,7 +268,6 @@ load (const char *file_name, void (**eip) (void), void **esp, struct thread_data
   if (t->pagedir == NULL)
     goto done;
   process_activate ();
-  printf("We are about to call SetupStack from load");
   /* Set up stack. */
   if (!setup_stack (esp, t_data)){
     goto done;
@@ -297,7 +313,7 @@ load (const char *file_name, void (**eip) (void), void **esp, struct thread_data
     i++;
   }
 #endif
-
+  printf("\n %s \n", file_name);
   /* Open executable file. */
   file = filesys_open (file_name);
   if (file == NULL)
@@ -502,20 +518,23 @@ load_segment (struct file *file, off_t ofs, uint8_t *upage,
 static bool
 setup_stack (void **esp, struct thread_data *t_data)
 {
+  
   uint8_t *kpage;
   bool success = false;
 
   kpage = palloc_get_page (PAL_USER | PAL_ZERO);
+
   if (kpage != NULL)
     {
       success = install_page (((uint8_t *) PHYS_BASE) - PGSIZE, kpage, true);
-      if (success)
+      if (success){
         *esp = PHYS_BASE;
-      else
+      }else{
         palloc_free_page (kpage);
-        return success;
+      return success;
     }
-    printf("We are about to set up the stack");
+  }
+
     //char *argv[32];
     //argv = *t_data->argv;
     //int argc = t_data->argc;
@@ -524,12 +543,13 @@ setup_stack (void **esp, struct thread_data *t_data)
     for (i = 0; i < 2; i++) {
       for(j = 0; j < t_data->argc; j++){
           if (pointer){
-            memcpy((void*)*esp, (void*)&t_data->argv[j], sizeof(&t_data->argv[j]));
-            esp --;
+            **esp = &t_data->argv[j];
+            //TODO: fix this thing right here with the pointers etc
+            *esp --;
           }
           else{
-            memcpy((void*)*esp, (void*)t_data->argv[j], sizeof(t_data->argv[j]));
-            esp -= sizeof(*t_data->argv[j]);
+            memcpy((void*)*esp, (void*)t_data->argv[j], strlen(t_data->argv[j]));
+            *esp -= strlen(*t_data->argv[j]);
           }
 
       }
@@ -540,10 +560,10 @@ setup_stack (void **esp, struct thread_data *t_data)
       }
     }
 
-    memcpy(*esp, &t_data->argv, sizeof(&t_data->argv));
-    esp -= sizeof(&t_data->argv);
-    memcpy(*esp, &t_data->argc, sizeof(&t_data->argc));
-    esp -= sizeof(&t_data->argc);
+    **esp = &t_data->argv;
+    *esp --;
+    **esp = &t_data->argc;
+    *esp --;
   return success;
 }
 

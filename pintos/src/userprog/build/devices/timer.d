@@ -4,4 +4,5 @@ devices/timer.o: ../../devices/timer.c ../../devices/timer.h \
  ../../lib/kernel/list.h ../../lib/inttypes.h ../../lib/stdio.h \
  ../../lib/stdarg.h ../../lib/kernel/stdio.h ../../threads/interrupt.h \
  ../../threads/io.h ../../threads/synch.h ../../threads/thread.h \
- ../../threads/synch.h
+ ../../threads/malloc.h ../../threads/synch.h ../../filesys/file.h \
+ ../../filesys/off_t.h

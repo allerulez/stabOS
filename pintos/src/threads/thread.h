@@ -4,7 +4,9 @@
 #include <debug.h>
 #include <list.h>
 #include <stdint.h>
+#include "malloc.h"
 #include "synch.h"
+#include "filesys/file.h"
 
 
 
@@ -131,6 +133,7 @@ struct thread
         struct thread * thread;
         char * argv[32];
         int argc;
+        struct semaphore s;
       };
 
 /* If false (default), use round-robin scheduler.
@@ -139,13 +142,15 @@ struct thread
 extern bool thread_mlfqs;
 
 void thread_init (void);
+void pair_init (struct thread *);
+struct thread_data * t_data_init (void); 
 void thread_start (void);
 
 void thread_tick (void);
 void thread_print_stats (void);
 
 typedef void thread_func (void *aux);
-tid_t thread_create (const char *name, int priority, thread_func *function, struct thread_data *aux, struct semaphore *s);
+tid_t thread_create (const char *name, int priority, thread_func *function, void *aux);
 
 void thread_block (void);
 void thread_unblock (struct thread *);
