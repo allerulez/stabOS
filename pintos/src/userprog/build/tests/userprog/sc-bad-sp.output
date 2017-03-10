@@ -1,0 +1,38 @@
+Copying tests/userprog/sc-bad-sp into /tmp/xu0S6CkzCB.dsk...
+Writing command line to /tmp/J7lgr_usFJ.dsk...
+qemu -hda /tmp/J7lgr_usFJ.dsk -hdb /tmp/PM9MKwGI4Q.dsk -hdc /tmp/xu0S6CkzCB.dsk -m 4 -net none -nographic -monitor null
+Kernel command line: -q -f put sc-bad-sp run sc-bad-sp
+Pintos booting with 4,088 kB RAM...
+372 pages available in kernel pool.
+371 pages available in user pool.
+Calibrating timer...  419,020,800 loops/s.
+hd0:0: detected 153 sector (76 kB) disk, model "QEMU HARDDISK", serial "QM00001"
+hd0:1: detected 4,032 sector (1 MB) disk, model "QEMU HARDDISK", serial "QM00002"
+hd1:0: detected 97 sector (48 kB) disk, model "QEMU HARDDISK", serial "QM00003"
+Formatting file system...done.
+Boot complete.
+Putting 'sc-bad-sp' into the file system...
+gdsxgsdgksrmExecuting 'sc-bad-sp':
+Page fault at 0xfffffffc: not present error writing page in kernel context.
+Interrupt 0x0e (#PF Page-Fault Exception) at eip=0xc01092ac
+ cr2=fffffffc error=00000002
+ eax=00000001 ebx=00000000 ecx=00000001 edx=0028b007
+ esi=fffffffc edi=c011ffa8 esp=00000006 ebp=c011d00c
+ cs=0008 ds=0010 es=0010 ss=0000
+Kernel PANIC at ../../userprog/exception.c:100 in kill(): Kernel bug - unexpected interrupt in kernel
+Call stack: 0xc010705b 0xc01092ac 0xc011f000 0x732d6461Page fault at 0x622d6373: not present error reading page in kernel context.
+Interrupt 0x0e (#PF Page-Fault Exception) at eip=0xc0105297
+ cr2=622d6373 error=00000000
+ eax=0000000b ebx=622d6373 ecx=000007b7 edx=000003d4
+ esi=00000064 edi=c010cc45 esp=c010def7 ebp=c011fdd4
+ cs=0008 ds=0010 es=0010 ss=6461
+Kernel PANIC recursion at ../../userprog/exception.c:100 in kill().
+Timer: 64 ticks
+Thread: 32 idle ticks, 31 kernel ticks, 1 user ticks
+hd0:0: 0 reads, 0 writes
+hd0:1: 30 reads, 202 writes
+hd1:0: 97 reads, 0 writes
+Console: 1553 characters output
+Keyboard: 0 keys pressed
+Exception: 2 page faults
+Powering off...

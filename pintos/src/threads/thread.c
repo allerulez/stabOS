@@ -232,6 +232,7 @@ thread_create (const char *name, int priority,
   #endif
   /* Add to run queue. */
   thread_unblock(t);
+
   return tid;
 }
 

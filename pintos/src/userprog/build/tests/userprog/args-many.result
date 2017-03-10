@@ -1,6 +1,9 @@
 FAIL
 Kernel panic in run: PANIC at ../../userprog/exception.c:100 in kill(): Kernel bug - unexpected interrupt in kernel
-Call stack: 0xc010705b 0xc010af85
+Call stack: 0xc010705b 0xc01092ac 0xc011f000 0x6e616d2d
 Translation of call stack:
+In kernel.o:
 0xc010705b: debug_panic (.../../lib/kernel/debug.c:34)
-0xc010af85: file_allow_write (.../../../filesys/file.c:146)
+0xc01092ac: setup_stack (...../userprog/process.c:545)
+0xc011f000: (unknown)
+0x6e616d2d: (unknown)

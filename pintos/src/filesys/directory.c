@@ -106,7 +106,6 @@ lookup (const struct dir *dir, const char *name,
           *ep = e;
         if (ofsp != NULL)
           *ofsp = ofs;
-  printf("gdsxgsdgksrm");
         return true;
       }
   return false;

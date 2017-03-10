@@ -29,6 +29,7 @@ static bool load (const char *cmdline, void (**eip) (void), void **esp,  struct 
 tid_t
 process_execute (const char *cmd_line)
 {
+  printf("%s\n", cmd_line);
   struct thread * cur_thread = thread_current();
   struct thread_data * t_data;
   t_data = t_data_init();
@@ -47,6 +48,8 @@ process_execute (const char *cmd_line)
     //  argc++;
       t_data->argv[t_data->argc] = token;
       t_data->argc++;
+      printf("%i", t_data->argc);
+
     }
   
 
@@ -84,7 +87,7 @@ process_execute (const char *cmd_line)
    running. */
 static void
 start_process (void * file_name_)  /*void *file_name_)*/
-{
+{ 
   struct thread_data * t_data = (struct thread_data *) file_name_;
   struct thread * cur_thread = thread_current();
   char *fileNm = t_data->fn_copy; //file_name_;
@@ -111,6 +114,7 @@ start_process (void * file_name_)  /*void *file_name_)*/
     }
     thread_exit ();
   }
+
   /* Start the user process by simulating a return from an
      interrupt, implemented by intr_exit (in
      threads/intr-stubs.S).  Because intr_exit takes all of its
@@ -521,6 +525,7 @@ setup_stack (void **esp, struct thread_data *t_data)
   
   uint8_t *kpage;
   bool success = false;
+  void *stack_pointer = *esp;
 
   kpage = palloc_get_page (PAL_USER | PAL_ZERO);
 
@@ -528,7 +533,7 @@ setup_stack (void **esp, struct thread_data *t_data)
     {
       success = install_page (((uint8_t *) PHYS_BASE) - PGSIZE, kpage, true);
       if (success){
-        *esp = PHYS_BASE;
+        stack_pointer = PHYS_BASE;
       }else{
         palloc_free_page (kpage);
       return success;
@@ -538,32 +543,45 @@ setup_stack (void **esp, struct thread_data *t_data)
     //char *argv[32];
     //argv = *t_data->argv;
     //int argc = t_data->argc;
-    bool pointer = false;
-    int i, j;
-    for (i = 0; i < 2; i++) {
-      for(j = 0; j < t_data->argc; j++){
-          if (pointer){
-            **esp = &t_data->argv[j];
-            //TODO: fix this thing right here with the pointers etc
-            *esp --;
-          }
-          else{
-            memcpy((void*)*esp, (void*)t_data->argv[j], strlen(t_data->argv[j]));
-            *esp -= strlen(*t_data->argv[j]);
-          }
+  //unsigned stack_pointer_misalign = (unsigned)*esp % 4;
+  //*esp -= stack_pointer_misalign;  
+  bool pointer = false;
+  int i, j;
 
-      }
-      if(!i){
-        pointer = true;
-        int offset = (int)*esp%4;
-        *esp -= (offset);
-      }
+  for (i = 0; i < 2; i++) {
+    for(j = t_data->argc - 1; j >= 0; j--){
+        if (!pointer){
+          //**esp = &t_data->argv[j];
+          //strlcpy(**esp, &t_data->argv[j], strlen(t_data->argv[j]));
+          stack_pointer -= sizeof(char*);
+          *((char**)stack_pointer) = t_data->argv[j];
+           //TODO: fix this thing right here with the pointers etc          
+          printf("this is now on the stack: %s\n", *((char**)stack_pointer));
+        }
+        else{
+          stack_pointer -= strlen(t_data->argv[j]);
+          strlcpy(stack_pointer, t_data->argv[j], strlen(t_data->argv[j])+1);
+          printf("thisis now on the stack: %i", (unsigned) &t_data->argv[j]);
+            // ..memcpy((void*)*esp, (void*)t_data->argv[j], strlen(t_data->argv[j]));
+        }
+
     }
+    if(!i){
+      pointer = true;
+      unsigned offset = (unsigned) *esp%4;
+      stack_pointer -= (offset);
+      stack_pointer -= sizeof(char*);
+      *((char*)stack_pointer) = NULL;
+    }
+  }
 
-    **esp = &t_data->argv;
-    *esp --;
-    **esp = &t_data->argc;
-    *esp --;
+  stack_pointer -= sizeof(char*);
+  *((char**)stack_pointer) = stack_pointer + sizeof(char**); //t_data->argv;
+  //*stack_pointer = &t_data->argv;
+  stack_pointer -= sizeof(int);
+  *((int*)stack_pointer) = t_data->argc;  
+  //&(stack_pointer) = &t_data->argc;
+  //*stack_pointer = &t_data->argc;
   return success;
 }
 
